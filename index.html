@@ -18,8 +18,8 @@ th{background:#f48fb1;color:white;padding:10px;}
 td{border:1px solid #f8bbd0;padding:8px;text-align:center;}
 td input,td select,td textarea{width:100%;box-sizing:border-box;border:none;padding:4px;text-align:center;background:#fff0f6;border-radius:5px;}
 td textarea{resize:vertical;min-height:40px;}
-button.add-row,button#downloadExcel,button#uploadExcel{margin-top:10px;padding:8px 14px;border:none;border-radius:10px;background:#f06292;color:white;font-weight:bold;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
-button.add-row:hover,button#downloadExcel:hover,button#uploadExcel:hover{background:#ec407a;}
+button.add-row,button#downloadExcel{margin-top:10px;padding:8px 14px;border:none;border-radius:10px;background:#f06292;color:white;font-weight:bold;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
+button.add-row:hover,button#downloadExcel:hover{background:#ec407a;}
 button.delete-row{padding:5px 10px;border:none;border-radius:6px;background:#e57373;color:white;cursor:pointer;}
 .total-box{font-weight:bold;margin-top:10px;padding:10px;background:#fff0f6;border:1px solid #f8bbd0;border-radius:8px;display:inline-block;}
 </style>
@@ -56,11 +56,9 @@ button.delete-row{padding:5px 10px;border:none;border-radius:6px;background:#e57
   <div class="total-box">Total: <span id="totalPengeluaran">Rp 0</span></div>
 </div>
 
-<!-- Tombol Download & Upload Excel -->
-<div style="text-align:center;margin-top:15px;">
+<!-- Tombol Download Excel -->
+<div style="text-align:center;">
   <button id="downloadExcel" onclick="downloadExcel()">Download Excel</button>
-  <button id="uploadExcel" onclick="document.getElementById('fileInput').click()">Upload Excel</button>
-  <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="uploadExcel(event)">
 </div>
 
 <script>
@@ -124,17 +122,20 @@ function downloadExcel(){
   const data=JSON.parse(localStorage.getItem("chizaData")||'{"pesanan":[],"pengeluaran":[]}');
   const wb=XLSX.utils.book_new();
 
+  // Sheet Pesanan
   const wsPesanan=XLSX.utils.json_to_sheet(data.pesanan.map(r=>({
     Produk:r.produk,Nama:r.nama,Harga:r.harga,Pembayaran:r.pembayaran,
     Status:r.status,Penjual:r.penjual,Ekspedisi:r.ekspedisi,Alamat:r.alamat
   })));
   XLSX.utils.book_append_sheet(wb,wsPesanan,"Pesanan");
 
+  // Sheet Pengeluaran
   const wsPengeluaran=XLSX.utils.json_to_sheet(data.pengeluaran.map(r=>({
     Nama_Barang:r.nama,Harga:r.harga
   })));
   XLSX.utils.book_append_sheet(wb,wsPengeluaran,"Pengeluaran");
 
+  // Nama file otomatis dengan tanggal lengkap
   const today=new Date();
   const day=String(today.getDate()).padStart(2,'0');
   const monthNames=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
@@ -145,14 +146,7 @@ function downloadExcel(){
   XLSX.writeFile(wb,fileName);
 }
 
-function uploadExcel(event){
-  const file=event.target.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const data=new Uint8Array(e.target.result);
-    const wb=XLSX.read(data,{type:'array'});
-    // Sheet Pesanan
-    const wsP=wb.Sheets["Pesanan"];
-    if(wsP){
-      const jsonP=XLSX.utils
+window.onload=muatData;
+</script>
+</body>
+</html>
