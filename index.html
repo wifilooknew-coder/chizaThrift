@@ -75,17 +75,44 @@ function hitungTotalPesanan(){let total=0;document.querySelectorAll("#tabelPesan
 function hitungTotalPengeluaran(){let total=0;document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(r=>{let h=r.cells[1].querySelector("input");if(h)total+=getAngka(h.value);});document.getElementById("totalPengeluaran").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);}
 function hapusBaris(btn){btn.parentElement.parentElement.remove();hitungTotalPesanan();hitungTotalPengeluaran();simpanData();}
 
-function tambahBarisPesanan(d={}){let tbody=document.querySelector("#tabelPesanan tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.produk||''}" oninput="simpanData()"></td>
+function tambahBarisPesanan(d={}){let tbody=document.querySelector("#tabelPesanan tbody");let r=tbody.insertRow();r.innerHTML=`
+<td><input type="text" value="${d.produk||''}" oninput="simpanData()"></td>
 <td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
 <td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
-<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.pembayaran==='Cash'?'selected':''}>Cash</option><option ${d.pembayaran==='Transfer'?'selected':''}>Transfer</option><option ${d.pembayaran==='COD'?'selected':''}>COD</option></select></td>
-<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.status==='Lunas'?'selected':''}>Lunas</option><option ${d.status==='Belum Lunas'?'selected':''}>Belum Lunas</option></select></td>
-<td><select onchange="simpanData()"><option ${d.penjual==='Cici'?'selected':''}>Cici</option><option ${d.penjual==='Azanatun'?'selected':''}>Azanatun</option></select></td>
-<td><select onchange="simpanData()"><option ${d.ekspedisi==='JNT'?'selected':''}>JNT</option><option ${d.ekspedisi==='JNE'?'selected':''}>JNE</option><option ${d.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option></select></td>
+<td>
+  <select onchange="hitungTotalPesanan();simpanData()">
+    <option ${d.pembayaran==='Cash'?'selected':''}>Cash</option>
+    <option ${d.pembayaran==='Transfer'?'selected':''}>Transfer</option>
+    <option ${d.pembayaran==='COD'?'selected':''}>COD</option>
+  </select>
+</td>
+<td>
+  <select onchange="hitungTotalPesanan();simpanData()">
+    <option ${d.status==='Lunas'?'selected':''}>Lunas</option>
+    <option ${d.status==='Belum Lunas'?'selected':''}>Belum Lunas</option>
+  </select>
+</td>
+<td>
+  <select onchange="simpanData()">
+    <option ${d.penjual==='Cici'?'selected':''}>Cici</option>
+    <option ${d.penjual==='Azanatun'?'selected':''}>Azanatun</option>
+  </select>
+</td>
+<td>
+  <select onchange="simpanData()">
+    <option ${d.ekspedisi==='JNT'?'selected':''}>JNT</option>
+    <option ${d.ekspedisi==='JNE'?'selected':''}>JNE</option>
+    <option ${d.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option>
+    <option ${d.ekspedisi==='Seblak'?'selected':''}>Seblak</option>
+    <option ${d.ekspedisi==='Rumah Azanatun'?'selected':''}>Rumah Azanatun</option>
+    <option ${d.ekspedisi==='Rumah Cici'?'selected':''}>Rumah Cici</option>
+  </select>
+</td>
 <td><textarea oninput="simpanData()">${d.alamat||''}</textarea></td>
 <td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
 
-function tambahBarisPengeluaran(d={}){let tbody=document.querySelector("#tabelPengeluaran tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
+function tambahBarisPengeluaran(d={}){let tbody=document.querySelector("#tabelPengeluaran tbody");let r=tbody.insertRow();r.innerHTML=`
+<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
 <td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPengeluaran()" oninput="simpanData()"></td>
 <td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
 
