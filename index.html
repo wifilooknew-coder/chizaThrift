@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <title>ChizaThrift</title>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <style>
-/* CSS sama seperti sebelumnya */
-body {font-family: "Segoe UI", sans-serif; background: linear-gradient(to bottom, #ffe6f0, #fff); margin: 0; padding: 20px;}
-h1 {text-align: center; color: #d63384; margin-bottom: 20px; font-size: 2.5em; text-shadow: 1px 1px #fff;}
-.tabs {text-align: center; margin-bottom: 20px;}
-.tabs button {padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 20px; background: #f8bbd0; color: #fff; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
-.tabs button.active {background: #ec407a;}
-.tab-content {display: none;}
-.tab-content.active {display: block; animation: fadeIn 0.5s;}
-@keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}
-table {border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.15);}
-th {background: #f48fb1; color: white; padding: 10px;}
-td {border: 1px solid #f8bbd0; padding: 8px; text-align: center;}
-td input, td select, td textarea {width: 100%; box-sizing: border-box; border: none; padding: 4px; text-align: center; background: #fff0f6; border-radius: 5px;}
-td textarea {resize: vertical; min-height: 40px;}
-button.add-row {margin-top: 10px; padding: 8px 14px; border: none; border-radius: 10px; background: #f06292; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
-button.add-row:hover {background: #ec407a;}
-button.delete-row {padding: 5px 10px; border: none; border-radius: 6px; background: #e57373; color: white; cursor: pointer;}
-.total-box {font-weight: bold; margin-top: 10px; padding: 10px; background: #fff0f6; border: 1px solid #f8bbd0; border-radius: 8px; display: inline-block;}
+body {font-family:"Segoe UI", sans-serif; background: linear-gradient(to bottom,#ffe6f0,#fff); margin:0; padding:20px;}
+h1{text-align:center;color:#d63384;margin-bottom:20px;font-size:2.5em;text-shadow:1px 1px #fff;}
+.tabs{text-align:center;margin-bottom:20px;}
+.tabs button{padding:10px 20px;margin:0 5px;cursor:pointer;border:none;border-radius:20px;background:#f8bbd0;color:#fff;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
+.tabs button.active{background:#ec407a;}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeIn 0.5s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+table{border-collapse:collapse;width:100%;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
+th{background:#f48fb1;color:white;padding:10px;}
+td{border:1px solid #f8bbd0;padding:8px;text-align:center;}
+td input,td select,td textarea{width:100%;box-sizing:border-box;border:none;padding:4px;text-align:center;background:#fff0f6;border-radius:5px;}
+td textarea{resize:vertical;min-height:40px;}
+button.add-row,button#downloadExcel{margin-top:10px;padding:8px 14px;border:none;border-radius:10px;background:#f06292;color:white;font-weight:bold;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
+button.add-row:hover,button#downloadExcel:hover{background:#ec407a;}
+button.delete-row{padding:5px 10px;border:none;border-radius:6px;background:#e57373;color:white;cursor:pointer;}
+.total-box{font-weight:bold;margin-top:10px;padding:10px;background:#fff0f6;border:1px solid #f8bbd0;border-radius:8px;display:inline-block;}
 </style>
 </head>
 <body>
@@ -56,94 +56,89 @@ button.delete-row {padding: 5px 10px; border: none; border-radius: 6px; backgrou
   <div class="total-box">Total: <span id="totalPengeluaran">Rp 0</span></div>
 </div>
 
-<script>
-const apiUrl = "https://script.google.com/macros/s/AKfycbyMEPofl8lwhtKXjWvcgGOOhhwGWcJkeFZPioBTcvxCWQmRUx55gpdplhyeU717_jcUYg/exec"; // Ganti dengan Web App URL kamu
+<!-- Tombol Download Excel -->
+<div style="text-align:center;">
+  <button id="downloadExcel" onclick="downloadExcel()">Download Excel</button>
+</div>
 
+<script>
 function openTab(tabId){
-  document.querySelectorAll('.tab-content').forEach(div=>div.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   event.target.classList.add('active');
 }
 
-function getAngka(str){ return parseInt(str.replace(/[^0-9]/g,''))||0; }
-function formatRupiah(input){
-  let angka = input.value.replace(/[^,\d]/g,'');
-  if(angka){
-    let rupiah = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(angka);
-    input.value = rupiah;
-  }
-  simpanData();
+function getAngka(str){return parseInt(str.replace(/[^0-9]/g,''))||0;}
+function formatRupiah(input){let angka=input.value.replace(/[^,\d]/g,'');if(angka){input.value=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(angka);}simpanData();}
+function hitungTotalPesanan(){let total=0;document.querySelectorAll("#tabelPesanan tbody tr").forEach(r=>{let h=r.cells[2].querySelector("input");let s=r.cells[4].querySelector("select");if(h&&s&&s.value==="Lunas")total+=getAngka(h.value);});document.getElementById("totalPesanan").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);}
+function hitungTotalPengeluaran(){let total=0;document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(r=>{let h=r.cells[1].querySelector("input");if(h)total+=getAngka(h.value);});document.getElementById("totalPengeluaran").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);}
+function hapusBaris(btn){btn.parentElement.parentElement.remove();hitungTotalPesanan();hitungTotalPengeluaran();simpanData();}
+
+function tambahBarisPesanan(d={}){let tbody=document.querySelector("#tabelPesanan tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.produk||''}" oninput="simpanData()"></td>
+<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
+<td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
+<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.pembayaran==='Cash'?'selected':''}>Cash</option><option ${d.pembayaran==='Transfer'?'selected':''}>Transfer</option><option ${d.pembayaran==='COD'?'selected':''}>COD</option></select></td>
+<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.status==='Lunas'?'selected':''}>Lunas</option><option ${d.status==='Belum Lunas'?'selected':''}>Belum Lunas</option></select></td>
+<td><select onchange="simpanData()"><option ${d.penjual==='Cici'?'selected':''}>Cici</option><option ${d.penjual==='Azanatun'?'selected':''}>Azanatun</option></select></td>
+<td><select onchange="simpanData()"><option ${d.ekspedisi==='JNT'?'selected':''}>JNT</option><option ${d.ekspedisi==='JNE'?'selected':''}>JNE</option><option ${d.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option></select></td>
+<td><textarea oninput="simpanData()">${d.alamat||''}</textarea></td>
+<td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
+
+function tambahBarisPengeluaran(d={}){let tbody=document.querySelector("#tabelPengeluaran tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
+<td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPengeluaran()" oninput="simpanData()"></td>
+<td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
+
+function simpanData(){
+  const data={pesanan:[],pengeluaran:[]};
+  document.querySelectorAll("#tabelPesanan tbody tr").forEach(r=>data.pesanan.push({
+    produk:r.cells[0].querySelector("input").value,
+    nama:r.cells[1].querySelector("input").value,
+    harga:r.cells[2].querySelector("input").value,
+    pembayaran:r.cells[3].querySelector("select").value,
+    status:r.cells[4].querySelector("select").value,
+    penjual:r.cells[5].querySelector("select").value,
+    ekspedisi:r.cells[6].querySelector("select").value,
+    alamat:r.cells[7].querySelector("textarea").value
+  }));
+  document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(r=>data.pengeluaran.push({
+    nama:r.cells[0].querySelector("input").value,
+    harga:r.cells[1].querySelector("input").value
+  }));
+  localStorage.setItem("chizaData",JSON.stringify(data));
 }
 
-function hitungTotalPesanan(){
-  let total=0;
-  document.querySelectorAll("#tabelPesanan tbody tr").forEach(row=>{
-    let harga=row.cells[2].querySelector("input");
-    let status=row.cells[4].querySelector("select");
-    if(harga && status && status.value==="Lunas") total+=getAngka(harga.value);
-  });
-  document.getElementById("totalPesanan").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-}
-
-function hitungTotalPengeluaran(){
-  let total=0;
-  document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(row=>{
-    let harga=row.cells[1].querySelector("input");
-    if(harga) total+=getAngka(harga.value);
-  });
-  document.getElementById("totalPengeluaran").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-}
-
-function hapusBaris(btn){
-  btn.parentElement.parentElement.remove();
+function muatData(){
+  const data=JSON.parse(localStorage.getItem("chizaData")||'{"pesanan":[],"pengeluaran":[]}');
+  if(data.pesanan.length>0) data.pesanan.forEach(i=>tambahBarisPesanan(i));
+  else tambahBarisPesanan();
+  if(data.pengeluaran.length>0) data.pengeluaran.forEach(i=>tambahBarisPengeluaran(i));
+  else tambahBarisPengeluaran();
   hitungTotalPesanan();
   hitungTotalPengeluaran();
-  simpanData();
 }
 
-function tambahBarisPesanan(data={}) {
-  let tbody=document.querySelector("#tabelPesanan tbody");
-  let row=tbody.insertRow();
-  row.innerHTML=`
-    <td><input type="text" value="${data.produk||''}" oninput="simpanData()"></td>
-    <td><input type="text" value="${data.nama||''}" oninput="simpanData()"></td>
-    <td><input type="text" value="${data.harga||''}" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
-    <td>
-      <select onchange="hitungTotalPesanan();simpanData()">
-        <option ${data.pembayaran==='Cash'?'selected':''}>Cash</option>
-        <option ${data.pembayaran==='Transfer'?'selected':''}>Transfer</option>
-        <option ${data.pembayaran==='COD'?'selected':''}>COD</option>
-      </select>
-    </td>
-    <td>
-      <select onchange="hitungTotalPesanan();simpanData()">
-        <option ${data.status==='Lunas'?'selected':''}>Lunas</option>
-        <option ${data.status==='Belum Lunas'?'selected':''}>Belum Lunas</option>
-      </select>
-    </td>
-    <td>
-      <select onchange="simpanData()">
-        <option ${data.penjual==='Cici'?'selected':''}>Cici</option>
-        <option ${data.penjual==='Azanatun'?'selected':''}>Azanatun</option>
-      </select>
-    </td>
-    <td>
-      <select onchange="simpanData()">
-        <option ${data.ekspedisi==='JNT'?'selected':''}>JNT</option>
-        <option ${data.ekspedisi==='JNE'?'selected':''}>JNE</option>
-        <option ${data.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option>
-      </select>
-    </td>
-    <td><textarea oninput="simpanData()">${data.alamat||''}</textarea></td>
-    <td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>
-  `;
+function downloadExcel(){
+  const data=JSON.parse(localStorage.getItem("chizaData")||'{"pesanan":[],"pengeluaran":[]}');
+  const wb=XLSX.utils.book_new();
+
+  // Sheet Pesanan
+  const wsPesanan=XLSX.utils.json_to_sheet(data.pesanan.map(r=>({
+    Produk:r.produk,Nama:r.nama,Harga:r.harga,Pembayaran:r.pembayaran,
+    Status:r.status,Penjual:r.penjual,Ekspedisi:r.ekspedisi,Alamat:r.alamat
+  })));
+  XLSX.utils.book_append_sheet(wb,wsPesanan,"Pesanan");
+
+  // Sheet Pengeluaran
+  const wsPengeluaran=XLSX.utils.json_to_sheet(data.pengeluaran.map(r=>({
+    Nama_Barang:r.nama,Harga:r.harga
+  })));
+  XLSX.utils.book_append_sheet(wb,wsPengeluaran,"Pengeluaran");
+
+  XLSX.writeFile(wb,"ChizaThrift.xlsx");
 }
 
-function tambahBarisPengeluaran(data={}) {
-  let tbody=document.querySelector("#tabelPengeluaran tbody");
-  let row=tbody.insertRow();
-  row.innerHTML=`
-    <td><input type="text" value="${data.nama||''}" oninput="simpanData()"></td>
-    <td><input type="text" value="${data.harga||''}" onblur="formatRupiah(this);hitungTotalPengeluaran()" oninput="simpanData()"></td>
-    <td><button class="delete-row" onclick="hapusBaris(this)">H
+window.onload=muatData;
+</script>
+</body>
+</html>
