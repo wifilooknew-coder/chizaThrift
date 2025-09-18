@@ -1,146 +1,149 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>ChizaThrift</title>
-  <style>
-    body {font-family: "Segoe UI", sans-serif; background: linear-gradient(to bottom, #ffe6f0, #fff); margin: 0; padding: 20px;}
-    h1 {text-align: center; color: #d63384; margin-bottom: 20px; font-size: 2.5em; text-shadow: 1px 1px #fff;}
-    .tabs {text-align: center; margin-bottom: 20px;}
-    .tabs button {padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 20px; background: #f8bbd0; color: #fff; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
-    .tabs button.active {background: #ec407a;}
-    .tab-content {display: none;}
-    .tab-content.active {display: block; animation: fadeIn 0.5s;}
-    @keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}
-    table {border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.15);}
-    th {background: #f48fb1; color: white; padding: 10px;}
-    td {border: 1px solid #f8bbd0; padding: 8px; text-align: center;}
-    td input, td select, td textarea {width: 100%; box-sizing: border-box; border: none; padding: 4px; text-align: center; background: #fff0f6; border-radius: 5px;}
-    td textarea {resize: vertical; min-height: 40px;}
-    button.add-row {margin-top: 10px; padding: 8px 14px; border: none; border-radius: 10px; background: #f06292; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
-    button.add-row:hover {background: #ec407a;}
-    button.delete-row {padding: 5px 10px; border: none; border-radius: 6px; background: #e57373; color: white; cursor: pointer;}
-    .total-box {font-weight: bold; margin-top: 10px; padding: 10px; background: #fff0f6; border: 1px solid #f8bbd0; border-radius: 8px; display: inline-block;}
-  </style>
+<meta charset="UTF-8">
+<title>ChizaThrift</title>
+<style>
+/* CSS sama seperti sebelumnya */
+body {font-family: "Segoe UI", sans-serif; background: linear-gradient(to bottom, #ffe6f0, #fff); margin: 0; padding: 20px;}
+h1 {text-align: center; color: #d63384; margin-bottom: 20px; font-size: 2.5em; text-shadow: 1px 1px #fff;}
+.tabs {text-align: center; margin-bottom: 20px;}
+.tabs button {padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; border-radius: 20px; background: #f8bbd0; color: #fff; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
+.tabs button.active {background: #ec407a;}
+.tab-content {display: none;}
+.tab-content.active {display: block; animation: fadeIn 0.5s;}
+@keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}
+table {border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.15);}
+th {background: #f48fb1; color: white; padding: 10px;}
+td {border: 1px solid #f8bbd0; padding: 8px; text-align: center;}
+td input, td select, td textarea {width: 100%; box-sizing: border-box; border: none; padding: 4px; text-align: center; background: #fff0f6; border-radius: 5px;}
+td textarea {resize: vertical; min-height: 40px;}
+button.add-row {margin-top: 10px; padding: 8px 14px; border: none; border-radius: 10px; background: #f06292; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.2);}
+button.add-row:hover {background: #ec407a;}
+button.delete-row {padding: 5px 10px; border: none; border-radius: 6px; background: #e57373; color: white; cursor: pointer;}
+.total-box {font-weight: bold; margin-top: 10px; padding: 10px; background: #fff0f6; border: 1px solid #f8bbd0; border-radius: 8px; display: inline-block;}
+</style>
 </head>
 <body>
-  <h1>🌸 ChizaThrift 🌸</h1>
+<h1>🌸 ChizaThrift 🌸</h1>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="openTab('pesanan')">Pesanan</button>
-    <button class="tab-btn" onclick="openTab('pengeluaran')">Pengeluaran</button>
-  </div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="openTab('pesanan')">Pesanan</button>
+  <button class="tab-btn" onclick="openTab('pengeluaran')">Pengeluaran</button>
+</div>
 
-  <!-- Sheet Pesanan -->
-  <div id="pesanan" class="tab-content active">
-    <table id="tabelPesanan">
-      <thead>
-        <tr>
-          <th>produk</th><th>nama</th><th>harga</th><th>pembayaran</th><th>status</th><th>penjual</th><th>ekspedisi</th><th>alamat</th><th>aksi</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="add-row" onclick="tambahBarisPesanan()">+ Tambah Baris</button>
-    <div class="total-box">Total: <span id="totalPesanan">Rp 0</span></div>
-  </div>
+<div id="pesanan" class="tab-content active">
+  <table id="tabelPesanan">
+    <thead>
+      <tr>
+        <th>produk</th><th>nama</th><th>harga</th><th>pembayaran</th><th>status</th><th>penjual</th><th>ekspedisi</th><th>alamat</th><th>aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button class="add-row" onclick="tambahBarisPesanan()">+ Tambah Baris</button>
+  <div class="total-box">Total: <span id="totalPesanan">Rp 0</span></div>
+</div>
 
-  <!-- Sheet Pengeluaran -->
-  <div id="pengeluaran" class="tab-content">
-    <table id="tabelPengeluaran">
-      <thead>
-        <tr><th>nama barang</th><th>harga</th><th>aksi</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="add-row" onclick="tambahBarisPengeluaran()">+ Tambah Baris</button>
-    <div class="total-box">Total: <span id="totalPengeluaran">Rp 0</span></div>
-  </div>
+<div id="pengeluaran" class="tab-content">
+  <table id="tabelPengeluaran">
+    <thead>
+      <tr><th>nama barang</th><th>harga</th><th>aksi</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button class="add-row" onclick="tambahBarisPengeluaran()">+ Tambah Baris</button>
+  <div class="total-box">Total: <span id="totalPengeluaran">Rp 0</span></div>
+</div>
 
-  <script>
-    const apiUrl = "https://script.google.com/macros/s/AKfycbyMEPofl8lwhtKXjWvcgGOOhhwGWcJkeFZPioBTcvxCWQmRUx55gpdplhyeU717_jcUYg/exec"; // ganti dengan Web App URL
+<script>
+const apiUrl = "https://script.google.com/macros/s/AKfycbyMEPofl8lwhtKXjWvcgGOOhhwGWcJkeFZPioBTcvxCWQmRUx55gpdplhyeU717_jcUYg/exec"; // Ganti dengan Web App URL kamu
 
-    function openTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(div => div.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
-    }
+function openTab(tabId){
+  document.querySelectorAll('.tab-content').forEach(div=>div.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.target.classList.add('active');
+}
 
-    function formatRupiah(input) {
-      let angka = input.value.replace(/[^,\d]/g, '');
-      if (angka) {
-        let rupiah = new Intl.NumberFormat('id-ID', {style: 'currency', currency: 'IDR', minimumFractionDigits: 0}).format(angka);
-        input.value = rupiah;
-      }
-      simpanData();
-    }
+function getAngka(str){ return parseInt(str.replace(/[^0-9]/g,''))||0; }
+function formatRupiah(input){
+  let angka = input.value.replace(/[^,\d]/g,'');
+  if(angka){
+    let rupiah = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(angka);
+    input.value = rupiah;
+  }
+  simpanData();
+}
 
-    function getAngka(str) { return parseInt(str.replace(/[^0-9]/g, '')) || 0; }
+function hitungTotalPesanan(){
+  let total=0;
+  document.querySelectorAll("#tabelPesanan tbody tr").forEach(row=>{
+    let harga=row.cells[2].querySelector("input");
+    let status=row.cells[4].querySelector("select");
+    if(harga && status && status.value==="Lunas") total+=getAngka(harga.value);
+  });
+  document.getElementById("totalPesanan").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
+}
 
-    function hitungTotalPesanan() {
-      let rows = document.querySelectorAll("#tabelPesanan tbody tr");
-      let total = 0;
-      rows.forEach(row => {
-        let hargaInput = row.cells[2].querySelector("input");
-        let statusSelect = row.cells[4].querySelector("select");
-        if (hargaInput && statusSelect && statusSelect.value === "Lunas") {
-          total += getAngka(hargaInput.value);
-        }
-      });
-      document.getElementById("totalPesanan").innerText =
-        new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-    }
+function hitungTotalPengeluaran(){
+  let total=0;
+  document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(row=>{
+    let harga=row.cells[1].querySelector("input");
+    if(harga) total+=getAngka(harga.value);
+  });
+  document.getElementById("totalPengeluaran").innerText=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
+}
 
-    function hitungTotalPengeluaran() {
-      let rows = document.querySelectorAll("#tabelPengeluaran tbody tr");
-      let total = 0;
-      rows.forEach(row => {
-        let hargaInput = row.cells[1].querySelector("input");
-        if (hargaInput) total += getAngka(hargaInput.value);
-      });
-      document.getElementById("totalPengeluaran").innerText =
-        new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-    }
+function hapusBaris(btn){
+  btn.parentElement.parentElement.remove();
+  hitungTotalPesanan();
+  hitungTotalPengeluaran();
+  simpanData();
+}
 
-    function tambahBarisPesanan(data={}) {
-      let tabel = document.getElementById("tabelPesanan").getElementsByTagName("tbody")[0];
-      let barisBaru = tabel.insertRow();
-      barisBaru.innerHTML = `
-        <td><input type="text" value="${data.produk||''}" placeholder="produk" oninput="simpanData()"></td>
-        <td><input type="text" value="${data.nama||''}" placeholder="nama" oninput="simpanData()"></td>
-        <td><input type="text" value="${data.harga||''}" placeholder="harga" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
-        <td>
-          <select onchange="hitungTotalPesanan();simpanData()">
-            <option ${data.pembayaran==='Cash'?'selected':''}>Cash</option>
-            <option ${data.pembayaran==='Transfer'?'selected':''}>Transfer</option>
-            <option ${data.pembayaran==='COD'?'selected':''}>COD</option>
-          </select>
-        </td>
-        <td>
-          <select onchange="hitungTotalPesanan();simpanData()">
-            <option ${data.status==='Lunas'?'selected':''}>Lunas</option>
-            <option ${data.status==='Belum Lunas'?'selected':''}>Belum Lunas</option>
-          </select>
-        </td>
-        <td>
-          <select onchange="simpanData()">
-            <option ${data.penjual==='Cici'?'selected':''}>Cici</option>
-            <option ${data.penjual==='Azanatun'?'selected':''}>Azanatun</option>
-          </select>
-        </td>
-        <td>
-          <select onchange="simpanData()">
-            <option ${data.ekspedisi==='JNT'?'selected':''}>JNT</option>
-            <option ${data.ekspedisi==='JNE'?'selected':''}>JNE</option>
-            <option ${data.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option>
-          </select>
-        </td>
-        <td><textarea placeholder="alamat" oninput="simpanData()">${data.alamat||''}</textarea></td>
-        <td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>
-      `;
-    }
+function tambahBarisPesanan(data={}) {
+  let tbody=document.querySelector("#tabelPesanan tbody");
+  let row=tbody.insertRow();
+  row.innerHTML=`
+    <td><input type="text" value="${data.produk||''}" oninput="simpanData()"></td>
+    <td><input type="text" value="${data.nama||''}" oninput="simpanData()"></td>
+    <td><input type="text" value="${data.harga||''}" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
+    <td>
+      <select onchange="hitungTotalPesanan();simpanData()">
+        <option ${data.pembayaran==='Cash'?'selected':''}>Cash</option>
+        <option ${data.pembayaran==='Transfer'?'selected':''}>Transfer</option>
+        <option ${data.pembayaran==='COD'?'selected':''}>COD</option>
+      </select>
+    </td>
+    <td>
+      <select onchange="hitungTotalPesanan();simpanData()">
+        <option ${data.status==='Lunas'?'selected':''}>Lunas</option>
+        <option ${data.status==='Belum Lunas'?'selected':''}>Belum Lunas</option>
+      </select>
+    </td>
+    <td>
+      <select onchange="simpanData()">
+        <option ${data.penjual==='Cici'?'selected':''}>Cici</option>
+        <option ${data.penjual==='Azanatun'?'selected':''}>Azanatun</option>
+      </select>
+    </td>
+    <td>
+      <select onchange="simpanData()">
+        <option ${data.ekspedisi==='JNT'?'selected':''}>JNT</option>
+        <option ${data.ekspedisi==='JNE'?'selected':''}>JNE</option>
+        <option ${data.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option>
+      </select>
+    </td>
+    <td><textarea oninput="simpanData()">${data.alamat||''}</textarea></td>
+    <td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>
+  `;
+}
 
-    function tambahBarisPengeluaran(data={}) {
-      let tabel = document.getElementById("tabelPengeluaran").getElementsByTagName("
+function tambahBarisPengeluaran(data={}) {
+  let tbody=document.querySelector("#tabelPengeluaran tbody");
+  let row=tbody.insertRow();
+  row.innerHTML=`
+    <td><input type="text" value="${data.nama||''}" oninput="simpanData()"></td>
+    <td><input type="text" value="${data.harga||''}" onblur="formatRupiah(this);hitungTotalPengeluaran()" oninput="simpanData()"></td>
+    <td><button class="delete-row" onclick="hapusBaris(this)">H
