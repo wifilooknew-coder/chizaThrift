@@ -1,188 +1,313 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>ChizaThrift</title>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-<style>
-body {font-family:"Segoe UI", sans-serif; background: linear-gradient(to bottom,#ffe6f0,#fff); margin:0; padding:20px;}
-h1{text-align:center;color:#d63384;margin-bottom:20px;font-size:2.5em;text-shadow:1px 1px #fff;}
-.tabs{text-align:center;margin-bottom:20px;}
-.tabs button{padding:10px 20px;margin:0 5px;cursor:pointer;border:none;border-radius:20px;background:#f8bbd0;color:#fff;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
-.tabs button.active{background:#ec407a;}
-.tab-content{display:none;}
-.tab-content.active{display:block;animation:fadeIn 0.5s;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-table{border-collapse:collapse;width:100%;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
-th{background:#f48fb1;color:white;padding:10px;}
-td{border:1px solid #f8bbd0;padding:8px;text-align:center;}
-td input,td select,td textarea{width:100%;box-sizing:border-box;border:none;padding:4px;text-align:center;background:#fff0f6;border-radius:5px;}
-td textarea{resize:vertical;min-height:40px;}
-button.add-row,button#downloadExcel{margin-top:10px;padding:8px 14px;border:none;border-radius:10px;background:#f06292;color:white;font-weight:bold;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);}
-button.add-row:hover,button#downloadExcel:hover{background:#ec407a;}
-button.delete-row{padding:5px 10px;border:none;border-radius:6px;background:#e57373;color:white;cursor:pointer;}
-.total-box{font-weight:bold;margin-top:10px;padding:10px;background:#fff0f6;border:1px solid #f8bbd0;border-radius:8px;display:inline-block;}
-</style>
+  <meta charset="UTF-8">
+  <title>Chiza Thrift</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffe6f2 url('https://www.transparenttextures.com/patterns/sakura.png');
+      background-size: cover;
+    }
+    h1 {
+      color: #d63384;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 40px;
+      color: #b30e68;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th {
+      background: #ff99cc;
+      color: white;
+      padding: 10px;
+    }
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #ff66b2;
+      color: white;
+    }
+    button:hover {
+      background: #e0559c;
+    }
+    .delete-btn {
+      background: red;
+    }
+    p b {
+      color: #b30e68;
+    }
+    input[type="number"], input.harga, input.jumlah {
+      text-align: right;
+    }
+  </style>
 </head>
 <body>
-<h1>🌸 ChizaThrift 🌸</h1>
+  <h1>🌸 Chiza Thrift 🌸</h1>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="openTab('pesanan')">Pesanan</button>
-  <button class="tab-btn" onclick="openTab('pengeluaran')">Pengeluaran</button>
-</div>
-
-<div id="pesanan" class="tab-content active">
-  <table id="tabelPesanan">
+  <h2>📦 Penjualan</h2>
+  <table id="penjualanTable">
     <thead>
       <tr>
-        <th>produk</th><th>nama</th><th>harga</th><th>pembayaran</th><th>status</th><th>penjual</th><th>ekspedisi</th><th>alamat</th><th>aksi</th>
+        <th>Tanggal</th>
+        <th>Produk</th>
+        <th>Nama Pembeli</th>
+        <th>Harga</th>
+        <th>Pembayaran</th>
+        <th>Penjual</th>
+        <th>Ekspedisi</th>
+        <th>Status</th>
+        <th>Aksi</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-  <button class="add-row" onclick="tambahBarisPesanan()">+ Tambah Baris</button>
-  <div class="total-box">
-    Total: <span id="totalPesanan">Rp 0</span> &nbsp;&nbsp;|&nbsp;&nbsp;
-    Total Bersih: <span id="totalBersih">Rp 0</span>
-  </div>
-</div>
+  <button onclick="addRow('penjualan')">+ Tambah Penjualan</button>
+  <p><b>Total Pesanan (Lunas): Rp <span id="totalPesanan">0</span></b></p>
 
-<div id="pengeluaran" class="tab-content">
-  <table id="tabelPengeluaran">
+  <h2>💸 Pengeluaran</h2>
+  <table id="pengeluaranTable">
     <thead>
-      <tr><th>nama barang</th><th>harga</th><th>aksi</th></tr>
+      <tr>
+        <th>Tanggal</th>
+        <th>Keterangan</th>
+        <th>Jumlah</th>
+        <th>Aksi</th>
+      </tr>
     </thead>
     <tbody></tbody>
   </table>
-  <button class="add-row" onclick="tambahBarisPengeluaran()">+ Tambah Baris</button>
-  <div class="total-box">Total: <span id="totalPengeluaran">Rp 0</span></div>
-</div>
+  <button onclick="addRow('pengeluaran')">+ Tambah Pengeluaran</button>
+  <p><b>Total Pengeluaran: Rp <span id="totalPengeluaran">0</span></b></p>
 
-<div style="text-align:center;">
-  <button id="downloadExcel" onclick="downloadExcel()">Download Excel</button>
-</div>
+  <h2>📊 Ringkasan</h2>
+  <p><b>Total Bersih: Rp <span id="totalBersih">0</span></b></p>
 
-<script>
-function openTab(tabId){
-  document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  event.target.classList.add('active');
-}
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-function getAngka(str){return parseInt(str.replace(/[^0-9]/g,''))||0;}
-function formatRupiah(input){let angka=input.value.replace(/[^,\d]/g,'');if(angka){input.value=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(angka);}simpanData();}
+    const firebaseConfig = {
+      apiKey: "AIzaSyAbCuzBbqp6uS_B36UEZqZRkw4cZA3GI1Q",
+      authDomain: "chizathrift.firebaseapp.com",
+      projectId: "chizathrift",
+      storageBucket: "chizathrift.appspot.com",
+      messagingSenderId: "45254081746",
+      appId: "1:45254081746:web:5a51d8a4690d93d513810b",
+      databaseURL: "https://chizathrift-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
 
-function hitungTotalPesanan(){
-  let total=0;
-  document.querySelectorAll("#tabelPesanan tbody tr").forEach(r=>{
-    let h=r.cells[2].querySelector("input");
-    let s=r.cells[4].querySelector("select");
-    if(h && s && s.value==="Lunas") total += getAngka(h.value);
-  });
-  document.getElementById("totalPesanan").innerText = 
-    new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-  hitungTotalBersih();
-}
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-function hitungTotalPengeluaran(){
-  let total=0;
-  document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(r=>{
-    let h=r.cells[1].querySelector("input");
-    if(h) total += getAngka(h.value);
-  });
-  document.getElementById("totalPengeluaran").innerText =
-    new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(total);
-  hitungTotalBersih();
-}
+    const pembayaranOpts = ["Cash", "Transfer", "Hutang"];
+    const penjualOpts = ["Cici", "Azanatun"];
+    const ekspedisiOpts = ["JNE", "JNT", "Shopee", "Daily Food Seblak", "Rumah Cici", "Rumah Azanatun"];
+    const statusOpts = ["Lunas", "Belum Lunas"];
 
-function hitungTotalBersih(){
-  let totalPesanan = getAngka(document.getElementById("totalPesanan").innerText);
-  let totalPengeluaran = getAngka(document.getElementById("totalPengeluaran").innerText);
-  let bersih = totalPesanan - totalPengeluaran;
-  document.getElementById("totalBersih").innerText =
-    new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(bersih);
-}
+    // helper format angka
+    function formatNumber(num) {
+      return Number(num || 0).toLocaleString("id-ID");
+    }
+    function parseNumber(str) {
+      return Number((str || "0").toString().replace(/\./g, ""));
+    }
 
-function hapusBaris(btn){btn.parentElement.parentElement.remove();hitungTotalPesanan();hitungTotalPengeluaran();simpanData();}
+    function addRow(type) {
+      const tbody = document.querySelector(`#${type}Table tbody`);
+      const newRow = document.createElement("tr");
 
-function tambahBarisPesanan(d={}){let tbody=document.querySelector("#tabelPesanan tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.produk||''}" oninput="simpanData()"></td>
-<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
-<td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPesanan()" oninput="simpanData()"></td>
-<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.pembayaran==='Cash'?'selected':''}>Cash</option><option ${d.pembayaran==='Transfer'?'selected':''}>Transfer</option><option ${d.pembayaran==='COD'?'selected':''}>COD</option></select></td>
-<td><select onchange="hitungTotalPesanan();simpanData()"><option ${d.status==='Lunas'?'selected':''}>Lunas</option><option ${d.status==='Belum Lunas'?'selected':''}>Belum Lunas</option></select></td>
-<td><select onchange="simpanData()"><option ${d.penjual==='Cici'?'selected':''}>Cici</option><option ${d.penjual==='Azanatun'?'selected':''}>Azanatun</option></select></td>
-<td><select onchange="simpanData()">
-  <option ${d.ekspedisi==='JNT'?'selected':''}>JNT</option>
-  <option ${d.ekspedisi==='JNE'?'selected':''}>JNE</option>
-  <option ${d.ekspedisi==='ShopeeXpress'?'selected':''}>ShopeeXpress</option>
-  <option ${d.ekspedisi==='Seblak'?'selected':''}>Seblak</option>
-  <option ${d.ekspedisi==='Rumah Azanatun'?'selected':''}>Rumah Azanatun</option>
-  <option ${d.ekspedisi==='Rumah Cici'?'selected':''}>Rumah Cici</option>
-</select></td>
-<td><textarea oninput="simpanData()">${d.alamat||''}</textarea></td>
-<td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
+      if (type === "penjualan") {
+        newRow.innerHTML = `
+          <td><input type="date"></td>
+          <td><input type="text" placeholder="Produk"></td>
+          <td><input type="text" placeholder="Nama Pembeli"></td>
+          <td><input type="text" class="harga" placeholder="Harga"></td>
+          <td>${createSelect(pembayaranOpts)}</td>
+          <td>${createSelect(penjualOpts)}</td>
+          <td>${createSelect(ekspedisiOpts)}</td>
+          <td>${createSelect(statusOpts)}</td>
+          <td><button class="delete-btn">Hapus</button></td>
+        `;
+      } else {
+        newRow.innerHTML = `
+          <td><input type="date"></td>
+          <td><input type="text" placeholder="Keterangan"></td>
+          <td><input type="text" class="jumlah" placeholder="Jumlah"></td>
+          <td><button class="delete-btn">Hapus</button></td>
+        `;
+      }
 
-function tambahBarisPengeluaran(d={}){let tbody=document.querySelector("#tabelPengeluaran tbody");let r=tbody.insertRow();r.innerHTML=`<td><input type="text" value="${d.nama||''}" oninput="simpanData()"></td>
-<td><input type="text" value="${d.harga||''}" onblur="formatRupiah(this);hitungTotalPengeluaran()" oninput="simpanData()"></td>
-<td><button class="delete-row" onclick="hapusBaris(this)">Hapus</button></td>`;}
+      tbody.appendChild(newRow);
 
-function simpanData(){
-  const data={pesanan:[],pengeluaran:[]};
-  document.querySelectorAll("#tabelPesanan tbody tr").forEach(r=>data.pesanan.push({
-    produk:r.cells[0].querySelector("input").value,
-    nama:r.cells[1].querySelector("input").value,
-    harga:r.cells[2].querySelector("input").value,
-    pembayaran:r.cells[3].querySelector("select").value,
-    status:r.cells[4].querySelector("select").value,
-    penjual:r.cells[5].querySelector("select").value,
-    ekspedisi:r.cells[6].querySelector("select").value,
-    alamat:r.cells[7].querySelector("textarea").value
-  }));
-  document.querySelectorAll("#tabelPengeluaran tbody tr").forEach(r=>data.pengeluaran.push({
-    nama:r.cells[0].querySelector("input").value,
-    harga:r.cells[1].querySelector("input").value
-  }));
-  localStorage.setItem("chizaData",JSON.stringify(data));
-}
+      newRow.querySelector(".delete-btn").addEventListener("click", () => {
+        newRow.remove();
+        saveData();
+      });
 
-function muatData(){
-  const data=JSON.parse(localStorage.getItem("chizaData")||'{"pesanan":[],"pengeluaran":[]}');
-  if(data.pesanan.length>0) data.pesanan.forEach(i=>tambahBarisPesanan(i));
-  else tambahBarisPesanan();
-  if(data.pengeluaran.length>0) data.pengeluaran.forEach(i=>tambahBarisPengeluaran(i));
-  else tambahBarisPengeluaran();
-  hitungTotalPesanan();
-  hitungTotalPengeluaran();
-}
+      newRow.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("change", e => {
+          if (el.classList.contains("harga") || el.classList.contains("jumlah")) {
+            el.value = formatNumber(parseNumber(el.value));
+          }
+          saveData();
+        });
+      });
+    }
 
-function downloadExcel(){
-  const data=JSON.parse(localStorage.getItem("chizaData")||'{"pesanan":[],"pengeluaran":[]}');
-  const wb=XLSX.utils.book_new();
+    function createSelect(options) {
+      return `<select>${options.map(opt => `<option value="${opt}">${opt}</option>`).join("")}</select>`;
+    }
 
-  const wsPesanan=XLSX.utils.json_to_sheet(data.pesanan.map(r=>({
-    Produk:r.produk,Nama:r.nama,Harga:r.harga,Pembayaran:r.pembayaran,
-    Status:r.status,Penjual:r.penjual,Ekspedisi:r.ekspedisi,Alamat:r.alamat
-  })));
-  XLSX.utils.book_append_sheet(wb,wsPesanan,"Pesanan");
+    function saveData() {
+      const penjualanData = [];
+      document.querySelectorAll("#penjualanTable tbody tr").forEach(row => {
+        const inputs = row.querySelectorAll("input, select");
+        if (inputs.length) {
+          penjualanData.push({
+            tanggal: inputs[0].value,
+            produk: inputs[1].value,
+            pembeli: inputs[2].value,
+            harga: parseNumber(inputs[3].value),
+            pembayaran: inputs[4].value,
+            penjual: inputs[5].value,
+            ekspedisi: inputs[6].value,
+            status: inputs[7].value
+          });
+        }
+      });
 
-  const wsPengeluaran=XLSX.utils.json_to_sheet(data.pengeluaran.map(r=>({
-    Nama_Barang:r.nama,Harga:r.harga
-  })));
-  XLSX.utils.book_append_sheet(wb,wsPengeluaran,"Pengeluaran");
+      const pengeluaranData = [];
+      document.querySelectorAll("#pengeluaranTable tbody tr").forEach(row => {
+        const inputs = row.querySelectorAll("input, select");
+        if (inputs.length) {
+          pengeluaranData.push({
+            tanggal: inputs[0].value,
+            keterangan: inputs[1].value,
+            jumlah: parseNumber(inputs[2].value)
+          });
+        }
+      });
 
-  const today=new Date();
-  const day=String(today.getDate()).padStart(2,'0');
-  const monthNames=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  const month=monthNames[today.getMonth()];
-  const year=today.getFullYear();
-  const fileName=`${day}-${month}-${year}-Chiza.xlsx`;
+      set(ref(db, "penjualan"), penjualanData);
+      set(ref(db, "pengeluaran"), pengeluaranData);
+    }
 
-  XLSX.writeFile(wb,fileName);
-}
+    function loadData() {
+      onValue(ref(db, "penjualan"), snapshot => {
+        const data = snapshot.val() || [];
+        const tbody = document.querySelector("#penjualanTable tbody");
+        tbody.innerHTML = "";
+        data.forEach(item => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><input type="date" value="${item.tanggal || ""}"></td>
+            <td><input type="text" value="${item.produk || ""}"></td>
+            <td><input type="text" value="${item.pembeli || ""}"></td>
+            <td><input type="text" class="harga" value="${formatNumber(item.harga) || ""}"></td>
+            <td>${createSelect(pembayaranOpts)}</td>
+            <td>${createSelect(penjualOpts)}</td>
+            <td>${createSelect(ekspedisiOpts)}</td>
+            <td>${createSelect(statusOpts)}</td>
+            <td><button class="delete-btn">Hapus</button></td>
+          `;
+          tbody.appendChild(row);
 
-window.onload=muatData;
-</script>
+          row.querySelectorAll("select")[0].value = item.pembayaran;
+          row.querySelectorAll("select")[1].value = item.penjual;
+          row.querySelectorAll("select")[2].value = item.ekspedisi;
+          row.querySelectorAll("select")[3].value = item.status;
+
+          row.querySelector(".delete-btn").addEventListener("click", () => {
+            row.remove();
+            saveData();
+          });
+          row.querySelectorAll("input, select").forEach(el => {
+            el.addEventListener("change", () => {
+              if (el.classList.contains("harga")) {
+                el.value = formatNumber(parseNumber(el.value));
+              }
+              saveData();
+            });
+          });
+        });
+        updateTotals();
+      });
+
+      onValue(ref(db, "pengeluaran"), snapshot => {
+        const data = snapshot.val() || [];
+        const tbody = document.querySelector("#pengeluaranTable tbody");
+        tbody.innerHTML = "";
+        data.forEach(item => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><input type="date" value="${item.tanggal || ""}"></td>
+            <td><input type="text" value="${item.keterangan || ""}"></td>
+            <td><input type="text" class="jumlah" value="${formatNumber(item.jumlah) || ""}"></td>
+            <td><button class="delete-btn">Hapus</button></td>
+          `;
+          tbody.appendChild(row);
+
+          row.querySelector(".delete-btn").addEventListener("click", () => {
+            row.remove();
+            saveData();
+          });
+          row.querySelectorAll("input").forEach(el => {
+            el.addEventListener("change", () => {
+              if (el.classList.contains("jumlah")) {
+                el.value = formatNumber(parseNumber(el.value));
+              }
+              saveData();
+            });
+          });
+        });
+        updateTotals();
+      });
+    }
+
+    function updateTotals() {
+      let totalPesanan = 0;
+      document.querySelectorAll("#penjualanTable tbody tr").forEach(row => {
+        const harga = parseNumber(row.querySelector(".harga")?.value);
+        const status = row.querySelectorAll("select")[3]?.value;
+        if (status === "Lunas") {
+          totalPesanan += harga;
+        }
+      });
+
+      let totalPengeluaran = 0;
+      document.querySelectorAll("#pengeluaranTable tbody tr").forEach(row => {
+        totalPengeluaran += parseNumber(row.querySelector(".jumlah")?.value);
+      });
+
+      document.getElementById("totalPesanan").textContent = formatNumber(totalPesanan);
+      document.getElementById("totalPengeluaran").textContent = formatNumber(totalPengeluaran);
+      document.getElementById("totalBersih").textContent = formatNumber(totalPesanan - totalPengeluaran);
+    }
+
+    // ✅ fix tombol addRow biar global
+    window.addRow = addRow;
+
+    loadData();
+  </script>
 </body>
 </html>
