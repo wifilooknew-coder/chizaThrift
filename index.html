@@ -56,9 +56,6 @@
     p b {
       color: #b30e68;
     }
-    input[type="number"], input.harga, input.jumlah {
-      text-align: right;
-    }
   </style>
 </head>
 <body>
@@ -69,7 +66,6 @@
     <thead>
       <tr>
         <th>Tanggal</th>
-        <th>Produk</th>
         <th>Nama Pembeli</th>
         <th>Harga</th>
         <th>Pembayaran</th>
@@ -100,11 +96,29 @@
   <p><b>Total Pengeluaran: Rp <span id="totalPengeluaran">0</span></b></p>
 
   <h2>📊 Ringkasan</h2>
+  <label for="bulanPilihan">Pilih Bulan:</label>
+  <select id="bulanPilihan">
+    <option value="0">Januari</option>
+    <option value="1">Februari</option>
+    <option value="2">Maret</option>
+    <option value="3">April</option>
+    <option value="4">Mei</option>
+    <option value="5">Juni</option>
+    <option value="6">Juli</option>
+    <option value="7">Agustus</option>
+    <option value="8">September</option>
+    <option value="9">Oktober</option>
+    <option value="10">November</option>
+    <option value="11">Desember</option>
+  </select>
+  <select id="tahunPilihan"></select>
+  <button onclick="showMonthlySummary()">Lihat</button>
+
   <p><b>Total Bersih: Rp <span id="totalBersih">0</span></b></p>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAbCuzBbqp6uS_B36UEZqZRkw4cZA3GI1Q",
@@ -124,12 +138,15 @@
     const ekspedisiOpts = ["JNE", "JNT", "Shopee", "Daily Food Seblak", "Rumah Cici", "Rumah Azanatun"];
     const statusOpts = ["Lunas", "Belum Lunas"];
 
-    // helper format angka
-    function formatNumber(num) {
-      return Number(num || 0).toLocaleString("id-ID");
+    function formatInputRupiah(input) {
+      input.addEventListener("input", () => {
+        let value = input.value.replace(/\./g, "");
+        if (value === "") return;
+        input.value = Number(value).toLocaleString("id-ID");
+      });
     }
-    function parseNumber(str) {
-      return Number((str || "0").toString().replace(/\./g, ""));
+    function getNumericValue(input) {
+      return Number(input.value.replace(/\./g, "")) || 0;
     }
 
     function addRow(type) {
@@ -139,38 +156,36 @@
       if (type === "penjualan") {
         newRow.innerHTML = `
           <td><input type="date"></td>
-          <td><input type="text" placeholder="Produk"></td>
           <td><input type="text" placeholder="Nama Pembeli"></td>
-          <td><input type="text" class="harga" placeholder="Harga"></td>
+          <td><input type="text" placeholder="Harga"></td>
           <td>${createSelect(pembayaranOpts)}</td>
           <td>${createSelect(penjualOpts)}</td>
           <td>${createSelect(ekspedisiOpts)}</td>
           <td>${createSelect(statusOpts)}</td>
           <td><button class="delete-btn">Hapus</button></td>
         `;
+        formatInputRupiah(newRow.querySelectorAll("input")[2]);
       } else {
         newRow.innerHTML = `
           <td><input type="date"></td>
           <td><input type="text" placeholder="Keterangan"></td>
-          <td><input type="text" class="jumlah" placeholder="Jumlah"></td>
+          <td><input type="text" placeholder="Jumlah"></td>
           <td><button class="delete-btn">Hapus</button></td>
         `;
+        formatInputRupiah(newRow.querySelectorAll("input")[2]);
       }
 
       tbody.appendChild(newRow);
 
       newRow.querySelector(".delete-btn").addEventListener("click", () => {
-        newRow.remove();
-        saveData();
+        if (confirm("Apa kamu yakin ingin menghapus data ini?")) {
+          newRow.remove();
+          saveData();
+        }
       });
 
       newRow.querySelectorAll("input, select").forEach(el => {
-        el.addEventListener("change", e => {
-          if (el.classList.contains("harga") || el.classList.contains("jumlah")) {
-            el.value = formatNumber(parseNumber(el.value));
-          }
-          saveData();
-        });
+        el.addEventListener("change", saveData);
       });
     }
 
@@ -185,13 +200,12 @@
         if (inputs.length) {
           penjualanData.push({
             tanggal: inputs[0].value,
-            produk: inputs[1].value,
-            pembeli: inputs[2].value,
-            harga: parseNumber(inputs[3].value),
-            pembayaran: inputs[4].value,
-            penjual: inputs[5].value,
-            ekspedisi: inputs[6].value,
-            status: inputs[7].value
+            pembeli: inputs[1].value,
+            harga: getNumericValue(inputs[2]),
+            pembayaran: inputs[3].value,
+            penjual: inputs[4].value,
+            ekspedisi: inputs[5].value,
+            status: inputs[6].value
           });
         }
       });
@@ -203,111 +217,113 @@
           pengeluaranData.push({
             tanggal: inputs[0].value,
             keterangan: inputs[1].value,
-            jumlah: parseNumber(inputs[2].value)
+            jumlah: getNumericValue(inputs[2])
           });
         }
       });
 
       set(ref(db, "penjualan"), penjualanData);
       set(ref(db, "pengeluaran"), pengeluaranData);
+      updateTotals(penjualanData, pengeluaranData);
     }
 
-    function loadData() {
-      onValue(ref(db, "penjualan"), snapshot => {
-        const data = snapshot.val() || [];
-        const tbody = document.querySelector("#penjualanTable tbody");
-        tbody.innerHTML = "";
-        data.forEach(item => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td><input type="date" value="${item.tanggal || ""}"></td>
-            <td><input type="text" value="${item.produk || ""}"></td>
-            <td><input type="text" value="${item.pembeli || ""}"></td>
-            <td><input type="text" class="harga" value="${formatNumber(item.harga) || ""}"></td>
-            <td>${createSelect(pembayaranOpts)}</td>
-            <td>${createSelect(penjualOpts)}</td>
-            <td>${createSelect(ekspedisiOpts)}</td>
-            <td>${createSelect(statusOpts)}</td>
-            <td><button class="delete-btn">Hapus</button></td>
-          `;
-          tbody.appendChild(row);
+    function updateTotals(penjualanData, pengeluaranData) {
+      let totalPesanan = penjualanData.filter(d => d.status === "Lunas").reduce((s, d) => s + d.harga, 0);
+      let totalPengeluaran = pengeluaranData.reduce((s, d) => s + d.jumlah, 0);
+      let totalBersih = totalPesanan - totalPengeluaran;
 
-          row.querySelectorAll("select")[0].value = item.pembayaran;
-          row.querySelectorAll("select")[1].value = item.penjual;
-          row.querySelectorAll("select")[2].value = item.ekspedisi;
-          row.querySelectorAll("select")[3].value = item.status;
-
-          row.querySelector(".delete-btn").addEventListener("click", () => {
-            row.remove();
-            saveData();
-          });
-          row.querySelectorAll("input, select").forEach(el => {
-            el.addEventListener("change", () => {
-              if (el.classList.contains("harga")) {
-                el.value = formatNumber(parseNumber(el.value));
-              }
-              saveData();
-            });
-          });
-        });
-        updateTotals();
-      });
-
-      onValue(ref(db, "pengeluaran"), snapshot => {
-        const data = snapshot.val() || [];
-        const tbody = document.querySelector("#pengeluaranTable tbody");
-        tbody.innerHTML = "";
-        data.forEach(item => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td><input type="date" value="${item.tanggal || ""}"></td>
-            <td><input type="text" value="${item.keterangan || ""}"></td>
-            <td><input type="text" class="jumlah" value="${formatNumber(item.jumlah) || ""}"></td>
-            <td><button class="delete-btn">Hapus</button></td>
-          `;
-          tbody.appendChild(row);
-
-          row.querySelector(".delete-btn").addEventListener("click", () => {
-            row.remove();
-            saveData();
-          });
-          row.querySelectorAll("input").forEach(el => {
-            el.addEventListener("change", () => {
-              if (el.classList.contains("jumlah")) {
-                el.value = formatNumber(parseNumber(el.value));
-              }
-              saveData();
-            });
-          });
-        });
-        updateTotals();
-      });
+      document.getElementById("totalPesanan").textContent = totalPesanan.toLocaleString("id-ID");
+      document.getElementById("totalPengeluaran").textContent = totalPengeluaran.toLocaleString("id-ID");
+      document.getElementById("totalBersih").textContent = totalBersih.toLocaleString("id-ID");
     }
 
-    function updateTotals() {
-      let totalPesanan = 0;
-      document.querySelectorAll("#penjualanTable tbody tr").forEach(row => {
-        const harga = parseNumber(row.querySelector(".harga")?.value);
-        const status = row.querySelectorAll("select")[3]?.value;
-        if (status === "Lunas") {
-          totalPesanan += harga;
+    onValue(ref(db), snap => {
+      const data = snap.val();
+      if (data) loadData(data.penjualan || [], data.pengeluaran || []);
+    });
+
+    function loadData(penjualanData, pengeluaranData) {
+      const tPenjualan = document.querySelector("#penjualanTable tbody");
+      const tPengeluaran = document.querySelector("#pengeluaranTable tbody");
+      tPenjualan.innerHTML = ""; tPengeluaran.innerHTML = "";
+
+      penjualanData.forEach(d => {
+        addRow("penjualan");
+        const r = tPenjualan.lastChild.querySelectorAll("input, select");
+        r[0].value = d.tanggal || "";
+        r[1].value = d.pembeli || "";
+        r[2].value = d.harga ? d.harga.toLocaleString("id-ID") : "";
+        r[3].value = d.pembayaran || pembayaranOpts[0];
+        r[4].value = d.penjual || penjualOpts[0];
+        r[5].value = d.ekspedisi || ekspedisiOpts[0];
+        r[6].value = d.status || statusOpts[0];
+      });
+
+      pengeluaranData.forEach(d => {
+        addRow("pengeluaran");
+        const r = tPengeluaran.lastChild.querySelectorAll("input, select");
+        r[0].value = d.tanggal || "";
+        r[1].value = d.keterangan || "";
+        r[2].value = d.jumlah ? d.jumlah.toLocaleString("id-ID") : "";
+      });
+
+      updateTotals(penjualanData, pengeluaranData);
+    }
+
+    // === Ringkasan Bulanan ===
+    function populateTahunOptions() {
+      const tahunSelect = document.getElementById("tahunPilihan");
+      const thisYear = new Date().getFullYear();
+      for (let y = thisYear - 5; y <= thisYear + 5; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        if (y === thisYear) opt.selected = true;
+        tahunSelect.appendChild(opt);
+      }
+    }
+    populateTahunOptions();
+
+    function showMonthlySummary() {
+      const bulan = parseInt(document.getElementById("bulanPilihan").value);
+      const tahun = parseInt(document.getElementById("tahunPilihan").value);
+
+      const penjualanRows = document.querySelectorAll("#penjualanTable tbody tr");
+      const pengeluaranRows = document.querySelectorAll("#pengeluaranTable tbody tr");
+
+      let totalPesanan = 0, totalPengeluaran = 0;
+
+      penjualanRows.forEach(row => {
+        const inputs = row.querySelectorAll("input, select");
+        const tgl = inputs[0].value;
+        const harga = getNumericValue(inputs[2]);
+        const status = inputs[6].value;
+        if (tgl) {
+          const d = new Date(tgl);
+          if (d.getMonth() === bulan && d.getFullYear() === tahun && status === "Lunas") {
+            totalPesanan += harga;
+          }
         }
       });
 
-      let totalPengeluaran = 0;
-      document.querySelectorAll("#pengeluaranTable tbody tr").forEach(row => {
-        totalPengeluaran += parseNumber(row.querySelector(".jumlah")?.value);
+      pengeluaranRows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        const tgl = inputs[0].value;
+        const jumlah = getNumericValue(inputs[2]);
+        if (tgl) {
+          const d = new Date(tgl);
+          if (d.getMonth() === bulan && d.getFullYear() === tahun) {
+            totalPengeluaran += jumlah;
+          }
+        }
       });
 
-      document.getElementById("totalPesanan").textContent = formatNumber(totalPesanan);
-      document.getElementById("totalPengeluaran").textContent = formatNumber(totalPengeluaran);
-      document.getElementById("totalBersih").textContent = formatNumber(totalPesanan - totalPengeluaran);
+      const totalBersih = totalPesanan - totalPengeluaran;
+      alert(`📊 Ringkasan ${document.getElementById("bulanPilihan").options[bulan].text} ${tahun}\n\n✅ Total Pesanan: Rp ${totalPesanan.toLocaleString("id-ID")}\n💸 Total Pengeluaran: Rp ${totalPengeluaran.toLocaleString("id-ID")}\n💰 Total Bersih: Rp ${totalBersih.toLocaleString("id-ID")}`);
     }
 
-    // ✅ fix tombol addRow biar global
     window.addRow = addRow;
-
-    loadData();
+    window.showMonthlySummary = showMonthlySummary;
   </script>
 </body>
 </html>
