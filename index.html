@@ -133,9 +133,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const pembayaranOpts = ["Cash", "Transfer", "Hutang"];
+    const pembayaranOpts = ["Cash", "Transfer", "Hutang", "COD"];
     const penjualOpts = ["Cici", "Azanatun"];
-    const ekspedisiOpts = ["JNE", "JNT", "Shopee", "Daily Food Seblak", "Rumah Cici", "Rumah Azanatun"];
+    const ekspedisiOpts = ["JNE", "JNT", "Shopee", "Daily Food Seblak", "Rumah Cici", "Rumah Azanatun", "COD SHOPPE"];
     const statusOpts = ["Lunas", "Belum Lunas"];
 
     function formatInputRupiah(input) {
