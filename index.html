@@ -79,6 +79,11 @@
   </table>
   <button onclick="addRow('penjualan')">+ Tambah Penjualan</button>
   <p><b>Total Pesanan (Lunas): Rp <span id="totalPesanan">0</span></b></p>
+  <!-- Tambahan: Total per metode pembayaran -->
+  <p><span style="font-size:10px;"><b>Total Cash: Rp <span id="totalCash">0</span></b></span></p>
+  <p><span style="font-size:10px;"><b>Total Transfer: Rp <span id="totalTransfer">0</span></b></span></p>
+  <p><span style="font-size:10px;"><b>Total COD: Rp <span id="totalCOD">0</span></b></span></p>
+  <p><span style="font-size:10px;"><b>Total Hutang: Rp <span id="totalHutang">0</span></b></span></p>
 
   <h2>💸 Pengeluaran</h2>
   <table id="pengeluaranTable">
@@ -135,7 +140,7 @@
 
     const pembayaranOpts = ["Cash", "Transfer", "Hutang", "COD"];
     const penjualOpts = ["Cici", "Azanatun"];
-    const ekspedisiOpts = ["JNE", "JNT", "Shopee", "Daily Food Seblak", "Rumah Cici", "Rumah Azanatun", "COD SHOPPE"];
+    const ekspedisiOpts = ["JNE", "JNT", "SHOPPE", "DAILY FOOD", "RUMAH CICI", "RUMAH AZANATUN", "COD SHOPPE", " INDAH CARGO", "ANTAR", " JNT CARGO"];
     const statusOpts = ["Lunas", "Belum Lunas"];
 
     function formatInputRupiah(input) {
@@ -232,9 +237,26 @@
       let totalPengeluaran = pengeluaranData.reduce((s, d) => s + d.jumlah, 0);
       let totalBersih = totalPesanan - totalPengeluaran;
 
+      // Tambahan: hitung per metode pembayaran (hanya yg Lunas)
+      let totalCash = 0, totalTransfer = 0, totalCOD = 0, totalHutang = 0;
+      penjualanData.forEach(d => {
+        if (d.status === "Lunas") {
+          if (d.pembayaran === "Cash") totalCash += d.harga;
+          if (d.pembayaran === "Transfer") totalTransfer += d.harga;
+          if (d.pembayaran === "COD") totalCOD += d.harga;
+          if (d.pembayaran === "Hutang") totalHutang += d.harga;
+        }
+      });
+
       document.getElementById("totalPesanan").textContent = totalPesanan.toLocaleString("id-ID");
       document.getElementById("totalPengeluaran").textContent = totalPengeluaran.toLocaleString("id-ID");
       document.getElementById("totalBersih").textContent = totalBersih.toLocaleString("id-ID");
+
+      // Tambahan update ke HTML
+      document.getElementById("totalCash").textContent = totalCash.toLocaleString("id-ID");
+      document.getElementById("totalTransfer").textContent = totalTransfer.toLocaleString("id-ID");
+      document.getElementById("totalCOD").textContent = totalCOD.toLocaleString("id-ID");
+      document.getElementById("totalHutang").textContent = totalHutang.toLocaleString("id-ID");
     }
 
     onValue(ref(db), snap => {
